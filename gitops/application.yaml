@@ -22,10 +22,10 @@ spec:
             source:
                 repoURL: https://github.com/ArsenalRegistry/edu4.git
                 targetRevision: HEAD
-                path: '{{path}}'
+                path: gitops/'{{path}}'/overlays/dev
             destination:
                 server: https://kubernetes.default.svc
-                namespace: 'app-set'
+                namespace: app-set
             syncPolicy:
                 automated:
                     prune: true
