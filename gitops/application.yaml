@@ -4,12 +4,12 @@ metadata:
     name: first-application
 spec:
     generators:
-          - git:
-              repoURL: https://github.com/ArsenalRegistry/edu4.git
-              revision: main
-              directories:
-              - path: backend-java
-              - path: frontend-vue
+        - git:
+             repoURL: https://github.com/ArsenalRegistry/edu4.git
+             revision: main
+             directories:
+             - path: backend-java
+             - path: frontend-vue
         - list:
               elements:
                   - env: prd
