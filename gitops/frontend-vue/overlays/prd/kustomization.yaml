@@ -3,7 +3,7 @@ kind: Kustomization
 
 resources:
   - ../../base
-
+namePrefix: prd-
 images:
   - name: eduazureregistry.azurecr.io/frontend-vue
     newTag: {{TAG}}
