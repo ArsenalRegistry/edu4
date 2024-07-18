@@ -1,34 +1,36 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-    name: first-application
+  name: first-application
 spec:
-    generators:
-        - git:
-             repoURL: https://github.com/ArsenalRegistry/edu4.git
-             revision: main
-             directories:
-             - path: backend-java
-             - path: frontend-vue
-        - list:
+  generators:
+    - matrix:
+        generators:
+          - git:
+              repoURL: https://github.com/ArsenalRegistry/edu4.git
+              revision: main
+              directories:
+                - path: backend-java
+                - path: frontend-vue
+          - list:
               elements:
-                  - env: prd
-                  - env: dev
-    template:
-        metadata:
-            name: '{{path.basename}}'
-        spec:
-            project: default
-            source:
-                repoURL: https://github.com/ArsenalRegistry/edu4.git
-                targetRevision: HEAD
-                path: 'gitops/{{path}}/overlays/dev'
-            destination:
-                server: https://kubernetes.default.svc
-                namespace: app-set
-            syncPolicy:
-                automated:
-                    prune: true
-                    selfHeal: true
-                syncOptions:
-                    - CreateNamespace=true
+                - env: prd
+                - env: dev
+  template:
+    metadata:
+      name: '{{path.basename}}-{{env}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/ArsenalRegistry/edu4.git
+        targetRevision: HEAD
+        path: 'gitops/{{path}}/overlays/{{env}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: app-set
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
