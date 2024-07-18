@@ -4,22 +4,28 @@ metadata:
     name: first-application
 spec:
     generators:
+          - git:
+              repoURL: https://github.com/ArsenalRegistry/edu4.git
+              revision: main
+              directories:
+              - path: backend-java
+              - path: frontend-vue
         - list:
               elements:
-                  - env: prod
+                  - env: prd
                   - env: dev
     template:
         metadata:
-            name: '{{env}}-first-application'
+            name: '{{path.basename}}'
         spec:
             project: default
             source:
-                repoURL: https://github.com/argoproj/argocd-example-apps.git
+                repoURL: https://github.com/ArsenalRegistry/edu4.git
                 targetRevision: HEAD
-                path: first-application/overlays/{{env}}
+                path: '{{path}}'
             destination:
                 server: https://kubernetes.default.svc
-                namespace: '{{env}}-first-application'
+                namespace: 'app-set'
             syncPolicy:
                 automated:
                     prune: true
