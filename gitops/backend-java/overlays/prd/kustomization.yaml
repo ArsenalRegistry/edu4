@@ -3,7 +3,7 @@ kind: Kustomization
 
 resources:
   - ../../base
-
+namePrefix: prd-
 images:
   - name: eduazureregistry.azurecr.io/backend-java
     newTag: $TAG
