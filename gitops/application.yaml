@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+    name: first-application
+spec:
+    generators:
+        - list:
+              elements:
+                  - env: prod
+                  - env: dev
+    template:
+        metadata:
+            name: '{{env}}-first-application'
+        spec:
+            project: default
+            source:
+                repoURL: https://github.com/argoproj/argocd-example-apps.git
+                targetRevision: HEAD
+                path: first-application/overlays/{{env}}
+            destination:
+                server: https://kubernetes.default.svc
+                namespace: '{{env}}-first-application'
+            syncPolicy:
+                automated:
+                    prune: true
+                    selfHeal: true
+                syncOptions:
+                    - CreateNamespace=true
