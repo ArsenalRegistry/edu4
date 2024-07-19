@@ -3,7 +3,7 @@ kind: Kustomization
 
 resources:
   - ../../base
-namePrefix: dev2-
+namePrefix: dev-
 images:
   - name: eduazureregistry.azurecr.io/backend-java
     newTag: main-20240719040618
