@@ -9,21 +9,34 @@ on:
         default: 'latest'
 
 jobs:
-  build:
+  select-tag-and-run:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
       
       - name: List tags
+        id: list-tags
         run: |
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-          git tag -l
+          echo "::set-output name=tags::$(git tag -l)"
 
-      - name: Choose and checkout the selected tag
+      - name: Select tag
+        id: select-tag
         run: |
-          git checkout ${{ github.event.inputs.tag }}
-      
-      # Add your build/test/deploy steps here
-      - name: Example step
-        run: echo "Running with tag ${{ github.event.inputs.tag }}"
+          echo "Available tags:"
+          echo "${{ steps.list-tags.outputs.tags }}"
+
+          # Parse tags into array in JavaScript
+          echo "::set-output name=selected_tag::$(echo '${{ steps.list-tags.outputs.tags }}' | jq -r '. | split("\n") | map(select(. != ""))')"
+        
+      - name: Run with selected tag
+        run: |
+          # Retrieve the selected tag from the workflow input
+          selected_tag="${{ github.event.inputs.tag }}"
+
+          # Checkout the selected tag
+          git checkout "${selected_tag}"
+
+          # Add your build/test/deploy steps here
+          echo "Running with tag ${selected_tag}"
