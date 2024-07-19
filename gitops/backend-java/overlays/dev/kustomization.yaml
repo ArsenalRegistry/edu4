@@ -3,22 +3,11 @@ kind: Kustomization
 
 resources:
   - ../../base
-namePrefix: dev-
+namePrefix: dev2-
 images:
   - name: eduazureregistry.azurecr.io/backend-java
     newTag: main-20240719040618
-    
-patches:
-  - target:
-      kind: Deployment
-      name: my-app
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: dev-backend-java
-      spec:
-        replicas: 3  # 원하는 복제본 수
+  
   
 commonLabels:
   app: backend-java
