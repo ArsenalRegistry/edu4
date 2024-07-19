@@ -107,6 +107,6 @@ jobs:
         git add gitops/backend-java/overlays/dev/kustomization.yaml
         git commit -m "Update deployment with tag $TAG"
         git tag -a $TAG -m "Tagged with $TAG"
-        git push origin $TAG ${{ github.event.inputs.branch }}
+        git push origin $TAG
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
