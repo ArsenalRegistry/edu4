@@ -3,10 +3,14 @@ name: Prd Gitops Setting
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Choose a tag to run'
+      backend-java-tag:
+        description: 'backend-java tag'
         required: true
-        default: 'latest'
+        default: 'backend-java tag 입력'
+      frontend-vue-tag:
+        description: 'frontend-vue tag'
+        required: true
+        default: 'frontend-vue tag 입력'
 
 jobs:
   select-tag-and-run:
