@@ -3,18 +3,9 @@ name: Prd Gitops Setting
 on:
   workflow_dispatch:
     inputs:
-      milestone:
-        description: 'prd-milestone'
+      tag:
+        description: 'Choose a tag to run'
         required: true
-        default: 'milestone 입력'
-      backend-java-tag:
-        description: 'backend-java tag'
-        required: true
-        default: 'backend-java tag 입력'
-      frontend-vue-tag:
-        description: 'frontend-vue tag'
-        required: true
-        default: 'frontend-vue tag 입력'
 
 jobs:
   fetch-tags-and-branches:
