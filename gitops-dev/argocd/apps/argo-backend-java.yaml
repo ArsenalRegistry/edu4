@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backend-java
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/ArsenalRegistry/edu4.git'
+    targetRevision: HEAD
+    path: gitops/backend-java/overlays/dev # 기본으로 dev를 사용 테스트
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: app-set
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
