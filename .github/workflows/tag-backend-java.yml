@@ -1,0 +1,97 @@
+name: Tag Backend Java
+
+on:
+  workflow_dispatch:
+    inputs:
+      milestone_name:
+        description: "Milestone name"
+        required: true
+      branch:
+        description: "Branch name"
+        required: true
+        default: "main"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Docker Buildx 설정
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    # JDK 17 설치
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    # Gradle Wrapper 실행 권한 설정
+    - name: Grant execute permission for Gradle wrapper
+      run: chmod +x backend-java/gradlew
+
+    # Java 애플리케이션 빌드
+    - name: Build Java application using Gradle
+      working-directory: ./backend-java
+      run: ./gradlew build
+
+    # JAR 파일 경로 설정
+    - name: Get JAR file path
+      id: get_jar_path
+      run: |
+        JAR_PATH=$(find backend-java/build/libs -name '*.jar' | head -n 1)
+        if [ -z "$JAR_PATH" ]; then
+          echo "No JAR file found!"
+          exit 1
+        fi
+        echo "JAR_PATH=$JAR_PATH" >> $GITHUB_ENV
+        echo "Found JAR file: $JAR_PATH"
+
+    # 현재 날짜 및 시간 가져오기
+    - name: Get current date and time
+      id: datetime
+      run: echo "DATE_TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+
+    # 사용자가 선택한 마일스톤을 환경 변수로 설정
+    - name: Set milestone tag
+      id: set_milestone_tag
+      run: |
+        echo "MILESTONE_TAG=${{ github.event.inputs.milestone_name }}" >> $GITHUB_ENV
+        echo "Selected milestone: $MILESTONE_TAG"
+
+    # Docker 레지스트리(Azure Container Registry)에 로그인
+    - name: Log in to ACR
+      run: |
+        echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ secrets.AZURE_URL }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+
+    # Docker 이미지 빌드 및 푸시
+    - name: Build and Push Docker image
+      uses: docker/build-push-action@v3
+      with:
+        context: .  # 프로젝트 루트를 기준으로 설정
+        file: ./gitops/backend-java/Dockerfile  # Dockerfile의 위치를 정확히 지정      
+        push: true        
+        tags: ${{ secrets.AZURE_URL }}/backend-java:${{ env.MILESTONE_TAG }}-${{ env.DATE_TAG }}
+        build-args: |
+          JAR_PATH=${{ env.JAR_PATH }}
+
+    # Kustomize 파일 업데이트
+    - name: Update Kustomize Deployment with New Tag
+      run: |
+        TAG="${{ env.MILESTONE_TAG }}-${{ env.DATE_TAG }}"
+        sed -i "s|newTag: .*$|newTag: $TAG|g" gitops/backend-java/overlays/dev/kustomization.yaml
+
+    # 변경사항 커밋 및 푸시
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add gitops/backend-java/overlays/dev/kustomization.yaml
+        git commit -m "Update deployment with tag $TAG"
+        git push origin ${{ github.event.inputs.branch }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
