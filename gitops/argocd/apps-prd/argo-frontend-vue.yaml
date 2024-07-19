@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: frontend-vue
+  name: prd-frontend-vue
   namespace: argocd
 spec:
   project: default
