@@ -11,7 +11,7 @@ spec:
     path: gitops/backend-java/overlays/dev # 기본으로 dev를 사용
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: apps-set
+    namespace: app-set
   syncPolicy:
     automated:
       prune: true
