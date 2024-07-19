@@ -1,0 +1,30 @@
+name: Select and Print Tag
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  select_and_print_tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: List tags
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          git tag --list
+
+      - name: Select tag
+        id: select_tag
+        run: |
+          TAGS=$(git tag --list)
+          # Replace with logic to select the tag you want, e.g., user input or predefined logic
+          SELECTED_TAG="backend-java-1.1.0"
+          echo "::set-output name=selected_tag::$SELECTED_TAG"
+
+      - name: Print selected tag
+        run: |
+          echo "Selected tag: ${{ steps.select_tag.outputs.selected_tag }}"
