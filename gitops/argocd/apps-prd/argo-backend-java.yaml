@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: backend-java
+  name: prd-backend-java
   namespace: argocd
 spec:
   project: default
