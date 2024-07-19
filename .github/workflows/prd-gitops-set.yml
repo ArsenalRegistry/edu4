@@ -17,34 +17,43 @@ on:
         default: 'frontend-vue tag 입력'
 
 jobs:
-  select-tag-and-run:
+  check-tags-and-milestones:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      
-      - name: List tags
-        id: list-tags
+
+      # Fetch tags from remote repository
+      - name: Fetch tags
+        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+
+      # Fetch refs (including tags) from remote repository
+      - name: Fetch refs
+        run: git fetch --depth=1 origin +refs/*:refs/*
+
+      - name: Check backend-java tag
         run: |
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-          echo "::set-output name=tags::$(git tag -l)"
+          backend_java_tag="${{ github.event.inputs.backend-java-tag }}"
 
-      - name: Select tag
-        id: select-tag
+          if ! git tag -l | grep -q "^${backend_java_tag}$"; then
+            echo "::error::Backend Java tag '${backend_java_tag}' does not exist in the repository"
+            exit 1
+          fi
+
+      - name: Check frontend-vue tag
         run: |
-          echo "Available tags:"
-          echo "${{ steps.list-tags.outputs.tags }}"
+          frontend_vue_tag="${{ github.event.inputs.frontend-vue-tag }}"
 
-          # Parse tags into array in JavaScript
-          echo "::set-output name=selected_tag::$(echo '${{ steps.list-tags.outputs.tags }}' | jq -r '. | split("\n") | map(select(. != ""))')"
-        
-      - name: Run with selected tag
+          if ! git tag -l | grep -q "^${frontend_vue_tag}$"; then
+            echo "::error::Frontend Vue tag '${frontend_vue_tag}' does not exist in the repository"
+            exit 1
+          fi
+
+      - name: Check prd-milestone
         run: |
-          # Retrieve the selected tag from the workflow input
-          selected_tag="${{ github.event.inputs.tag }}"
+          prd_milestone="${{ github.event.inputs.milestone }}"
 
-          # Checkout the selected tag
-          git checkout "${selected_tag}"
-
-          # Add your build/test/deploy steps here
-          echo "Running with tag ${selected_tag}"
+          if ! git show-ref --tags | grep -q "/refs/tags/${prd_milestone}$"; then
+            echo "::error::PRD milestone '${prd_milestone}' does not exist in the repository"
+            exit 1
+          fi
