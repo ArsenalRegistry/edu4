@@ -1,0 +1,86 @@
+name: Tag Frontend Vue
+
+on:
+  workflow_dispatch:
+    inputs:
+      milestone_name:
+        description: "Milestone name"
+        required: true
+      branch:
+        description: "Branch name"
+        required: true
+        default: "main"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Check milestone existence
+      id: check_milestone
+      run: |
+        milestone_name="${{ github.event.inputs.milestone_name }}"
+        response=$(curl -sSL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/milestones")
+        if echo "$response" | grep -q "\"title\": \"$milestone_name\""; then
+          echo "Milestone '$milestone_name' exists."
+          echo "MILESTONE_EXISTS=true" >> $GITHUB_ENV
+        else
+          echo "Milestone '$milestone_name' does not exist."
+          echo "MILESTONE_EXISTS=false" >> $GITHUB_ENV
+        fi
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    - name: Install dependencies
+      working-directory: ./frontend-vue
+      run: npm install
+
+    - name: Build Vue.js application
+      working-directory: ./frontend-vue
+      run: npm run build
+
+    # 사용자가 선택한 마일스톤을 환경 변수로 설정
+    - name: Set milestone tag
+      id: set_milestone_tag
+      run: |
+        echo "MILESTONE_TAG=${{ github.event.inputs.milestone_name }}" >> $GITHUB_ENV
+        echo "Selected milestone: $MILESTONE_TAG"
+
+    # Docker 레지스트리(Azure Container Registry)에 로그인
+    - name: Log in to ACR
+      run: |
+        echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ secrets.AZURE_URL }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+
+    # Docker 이미지 빌드 및 푸시
+    - name: Build and Push Docker image
+      uses: docker/build-push-action@v3
+      with:
+        context: .  # 프로젝트 루트를 기준으로 설정
+        file: ./gitops/frontend-vue/Dockerfile  # Dockerfile의 위치를 정확히 지정      
+        push: true        
+        tags: ${{ secrets.AZURE_URL }}/frontend-vue:${{ env.MILESTONE_TAG }}
+
+    # Kustomize 파일 업데이트
+    - name: Update Kustomize Deployment with New Tag
+      run: |
+        TAG="${{ env.MILESTONE_TAG }}"
+        sed -i "s|newTag: .*$|newTag: $TAG|g" gitops/frontend-vue/overlays/prd/kustomization.yaml
+
+    # 변경사항 커밋 및 태그 생성 및 푸시
+    - name: Commit and push changes with tag
+      run: |
+        TAG="frontend-vue-${{ env.MILESTONE_TAG }}"
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add gitops/frontend-vue/overlays/prd/kustomization.yaml
+        git commit -m "Update deployment with tag $TAG"
+        git tag -a $TAG -m "Tagged with $TAG"
+        git push origin $TAG
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
