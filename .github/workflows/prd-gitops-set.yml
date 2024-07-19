@@ -17,20 +17,19 @@ on:
         default: 'frontend-vue tag 입력'
 
 jobs:
-  check-tags-and-milestones:
+  fetch-tags-and-branches:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Fetch tags from remote repository
-      - name: Fetch tags
-        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      # Fetch tags and branches
+      - name: Fetch tags and branches
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          git fetch --depth=1 origin +refs/heads/*:refs/heads/*
 
-      # Fetch refs (including tags) from remote repository
-      - name: Fetch refs
-        run: git fetch --depth=1 origin +refs/*:refs/*
-
+      # Check backend-java tag
       - name: Check backend-java tag
         run: |
           backend_java_tag="${{ github.event.inputs.backend-java-tag }}"
@@ -40,6 +39,7 @@ jobs:
             exit 1
           fi
 
+      # Check frontend-vue tag
       - name: Check frontend-vue tag
         run: |
           frontend_vue_tag="${{ github.event.inputs.frontend-vue-tag }}"
@@ -49,6 +49,7 @@ jobs:
             exit 1
           fi
 
+      # Check prd-milestone
       - name: Check prd-milestone
         run: |
           prd_milestone="${{ github.event.inputs.milestone }}"
