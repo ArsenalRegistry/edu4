@@ -3,6 +3,10 @@ name: Prd Gitops Setting
 on:
   workflow_dispatch:
     inputs:
+      milestone:
+        description: 'prd-milestone'
+        required: true
+        default: 'milestone 입력'
       backend-java-tag:
         description: 'backend-java tag'
         required: true
