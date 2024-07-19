@@ -19,6 +19,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Check milestone existence
+      id: check_milestone
+      run: |
+        milestone_name="${{ github.event.inputs.milestone_name }}"
+        response=$(curl -sSL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/milestones")
+        if echo "$response" | grep -q "\"title\": \"$milestone_name\""; then
+          echo "Milestone '$milestone_name' exists."
+          echo "MILESTONE_EXISTS=true" >> $GITHUB_ENV
+        else
+          echo "Milestone '$milestone_name' does not exist."
+          echo "MILESTONE_EXISTS=false" >> $GITHUB_ENV
+        fi
+
     # Docker Buildx 설정
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
@@ -83,7 +96,7 @@ jobs:
     - name: Update Kustomize Deployment with New Tag
       run: |
         TAG="${{ env.MILESTONE_TAG }}"
-        sed -i "s|newTag: .*$|newTag: $TAG|g" gitops/backend-java/overlays/dev/kustomization.yaml
+        sed -i "s|newTag: .*$|newTag: $TAG|g" gitops-dev/backend-java/overlays/dev/kustomization.yaml
 
     # 변경사항 커밋 및 태그 생성 및 푸시
     - name: Commit and push changes with tag
