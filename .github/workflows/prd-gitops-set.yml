@@ -1,4 +1,4 @@
-name: Select and Print Tag
+name: Prd Gitops Setting
 
 on:
   push:
