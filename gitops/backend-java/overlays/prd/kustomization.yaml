@@ -6,7 +6,7 @@ resources:
 namePrefix: prd-
 images:
   - name: eduazureregistry.azurecr.io/backend-java
-    newTag: $TAG
+    newTag: 1.1.0
 
 commonLabels:
   app: backend-java
