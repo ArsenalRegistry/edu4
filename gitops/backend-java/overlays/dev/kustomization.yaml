@@ -6,7 +6,7 @@ resources:
 namePrefix: dev-
 images:
   - name: eduazureregistry.azurecr.io/backend-java
-    newTag: 1.1.0-20240719060142
+    newTag: 1.1.0
   
   
 commonLabels:
