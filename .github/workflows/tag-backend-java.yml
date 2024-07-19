@@ -75,14 +75,14 @@ jobs:
         context: .  # 프로젝트 루트를 기준으로 설정
         file: ./gitops/backend-java/Dockerfile  # Dockerfile의 위치를 정확히 지정      
         push: true        
-        tags: ${{ secrets.AZURE_URL }}/backend-java:${{ env.MILESTONE_TAG }}-${{ env.DATE_TAG }}
+        tags: ${{ secrets.AZURE_URL }}/backend-java:${{ env.MILESTONE_TAG }}
         build-args: |
           JAR_PATH=${{ env.JAR_PATH }}
 
     # Kustomize 파일 업데이트
     - name: Update Kustomize Deployment with New Tag
       run: |
-        TAG="${{ env.MILESTONE_TAG }}-${{ env.DATE_TAG }}"
+        TAG="${{ env.MILESTONE_TAG }}"
         sed -i "s|newTag: .*$|newTag: $TAG|g" gitops/backend-java/overlays/dev/kustomization.yaml
 
     # 변경사항 커밋 및 푸시
@@ -92,6 +92,7 @@ jobs:
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add gitops/backend-java/overlays/dev/kustomization.yaml
         git commit -m "Update deployment with tag $TAG"
-        git push origin ${{ github.event.inputs.branch }}
+        git tag -a $TAG -m "Tagged with $TAG"
+        git push origin $TAG ${{ github.event.inputs.branch }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
