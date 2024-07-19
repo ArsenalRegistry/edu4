@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/ArsenalRegistry/edu4.git'
     targetRevision: HEAD
-    path: gitops/backend-java/overlays/dev # 기본으로 dev를 사용
+    path: gitops/backend-java/overlays/dev # 기본으로 dev를 사용 테스트
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: app-set
